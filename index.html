@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity Web Player | WebGL InputField Test</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+      left: 0;
+      top: 0;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    #unity-container {
+      position: fixed !important;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
+    #unity-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    input,
+    textarea {
+      font-size: 16px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"> </div>
+  </div>
+  <script>
+    window.addEventListener("load", function () {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("ServiceWorker.js");
+      }
+    });
+
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var warningBanner = document.querySelector("#unity-warning");
+
+    // Shows a temporary message banner/ribbon for a few seconds, or
+    // a permanent error message on top of the canvas if type=='error'.
+    // If type=='warning', a yellow highlight color is used.
+    // Modify or remove this function to customize the visually presented
+    // way that non-critical warnings and error messages are presented to the
+    // user.
+    function unityShowBanner(msg, type) {
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      }
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style = 'background: red; padding: 10px;';
+      else {
+        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+        setTimeout(function () {
+          warningBanner.removeChild(div);
+          updateBannerVisibility();
+        }, 5000);
+      }
+      updateBannerVisibility();
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/a01a93fd5ee6bb37c3e12dd443bc418f.loader.js";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/ac9c256bb348912a9342f2d3d2ce5a7f.data.unityweb",
+      frameworkUrl: buildUrl + "/2823fc0e8b0d9609df1d05e11ed7aeb7.framework.js.unityweb",
+      codeUrl: buildUrl + "/a4610751194c36a56176b694066a49c3.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "WebGL InputField Test",
+      productVersion: "0.1",
+      showBanner: unityShowBanner,
+      // errorHandler: function(err, url, line) {
+      //    alert("error " + err + " occurred at line " + line);
+      //    // Return 'true' if you handled this error and don't want Unity
+      //    // to process it further, 'false' otherwise.
+      //    return true;
+      // },
+    };
+
+    // By default Unity keeps WebGL canvas render target size matched with
+    // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+    // Set this to false if you want to decouple this synchronization from
+    // happening inside the engine, and you would instead like to size up
+    // the canvas DOM size and WebGL render target sizes yourself.
+    // config.matchWebGLToCanvasSize = false;
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Mobile device style: fill the whole browser client area with the game canvas:
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      // 'interactive-widget=overlays-content' prevents canvas from shifting up when virtual keyboard opens
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes, interactive-widget=overlays-content';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+
+      // Fallback: lock canvas height when virtual keyboard opens (older browsers that ignore interactive-widget)
+      var canvas = document.querySelector("#unity-canvas");
+      var lockedHeight = 0;
+
+      // Store the true viewport height before any keyboard appears
+      window.addEventListener("load", function () {
+        lockedHeight = window.innerHeight;
+        canvas.style.height = lockedHeight + "px";
+        document.body.style.height = lockedHeight + "px";
+        document.getElementById("unity-container").style.height = lockedHeight + "px";
+      });
+
+      // On resize: if height shrank → keyboard opened → restore locked height
+      window.addEventListener("resize", function () {
+        if (window.innerHeight < lockedHeight) {
+          // Keyboard opened — freeze canvas at original height
+          canvas.style.height = lockedHeight + "px";
+          document.body.style.height = lockedHeight + "px";
+          document.getElementById("unity-container").style.height = lockedHeight + "px";
+        } else {
+          // Keyboard closed — update locked height to new value (e.g. orientation change)
+          lockedHeight = window.innerHeight;
+          canvas.style.height = lockedHeight + "px";
+          document.body.style.height = lockedHeight + "px";
+          document.getElementById("unity-container").style.height = lockedHeight + "px";
+        }
+      });
+    }
+
+
+    loadingBar.style.display = "block";
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        loadingBar.style.display = "none";
+      }).catch((message) => {
+        alert(message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+  <script>
+    (function () {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) return;
+
+      let lockedWidth = window.innerWidth;
+      let lockedHeight = window.innerHeight;
+
+      function getUnityContainer() {
+        return document.querySelector("#unity-container");
+      }
+
+      function getUnityCanvas() {
+        return document.querySelector("#unity-canvas");
+      }
+
+      function lockPageAndCanvas() {
+        const container = getUnityContainer();
+        const canvas = getUnityCanvas();
+
+        document.documentElement.style.margin = "0";
+        document.documentElement.style.padding = "0";
+        document.documentElement.style.width = "100%";
+        document.documentElement.style.height = lockedHeight + "px";
+        document.documentElement.style.overflow = "hidden";
+        document.documentElement.style.position = "fixed";
+        document.documentElement.style.left = "0";
+        document.documentElement.style.top = "0";
+
+        document.body.style.margin = "0";
+        document.body.style.padding = "0";
+        document.body.style.width = "100%";
+        document.body.style.height = lockedHeight + "px";
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.left = "0";
+        document.body.style.top = "0";
+
+        if (container) {
+          container.style.position = "fixed";
+          container.style.left = "0";
+          container.style.top = "0";
+          container.style.right = "0";
+          container.style.bottom = "0";
+          container.style.width = "100vw";
+          container.style.height = lockedHeight + "px";
+          container.style.overflow = "hidden";
+          container.style.transform = "translateY(0px)";
+        }
+
+        if (canvas) {
+          canvas.style.width = "100vw";
+          canvas.style.height = lockedHeight + "px";
+        }
+
+        window.scrollTo(0, 0);
+      }
+
+      function handleViewportChange() {
+        const currentWidth = window.innerWidth;
+        const currentHeight = window.innerHeight;
+
+        const orientationChanged = Math.abs(currentWidth - lockedWidth) > 80;
+
+        if (orientationChanged) {
+          lockedWidth = currentWidth;
+          lockedHeight = currentHeight;
+        }
+
+        lockPageAndCanvas();
+
+        const container = getUnityContainer();
+
+        if (window.visualViewport && container) {
+          const offsetTop = window.visualViewport.offsetTop || 0;
+
+          // Counter browser keyboard/focus scroll without hiding TMP mobile input preview.
+          container.style.transform = "translateY(" + offsetTop + "px)";
+        }
+
+        window.scrollTo(0, 0);
+      }
+
+      window.addEventListener("load", function () {
+        lockedWidth = window.innerWidth;
+        lockedHeight = window.innerHeight;
+        lockPageAndCanvas();
+      });
+
+      window.addEventListener("resize", function () {
+        requestAnimationFrame(handleViewportChange);
+        setTimeout(handleViewportChange, 100);
+        setTimeout(handleViewportChange, 300);
+      });
+
+      window.addEventListener(
+        "scroll",
+        function () {
+          window.scrollTo(0, 0);
+        },
+        { passive: false }
+      );
+
+      document.addEventListener("focusin", function () {
+        requestAnimationFrame(handleViewportChange);
+        setTimeout(handleViewportChange, 100);
+        setTimeout(handleViewportChange, 300);
+      });
+
+      document.addEventListener("focusout", function () {
+        requestAnimationFrame(function () {
+          lockedWidth = window.innerWidth;
+          lockedHeight = window.innerHeight;
+          lockPageAndCanvas();
+        });
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", handleViewportChange);
+        window.visualViewport.addEventListener("scroll", handleViewportChange);
+      }
+
+      document.addEventListener(
+        "touchmove",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+    })();
+  </script>
+</body>
+
+</html>
