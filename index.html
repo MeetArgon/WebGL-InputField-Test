@@ -473,6 +473,227 @@
       });
     })();
   </script>
+  <script>
+    (function () {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) return;
+
+      let activeUnityInput = null;
+      let okButton = null;
+
+      function isUnityMobileInput(element) {
+        if (!element) return false;
+
+        const tag = element.tagName ? element.tagName.toLowerCase() : "";
+        if (tag !== "input" && tag !== "textarea") return false;
+
+        const type = (element.getAttribute("type") || "").toLowerCase();
+        if (type === "hidden" || type === "checkbox" || type === "radio" || type === "file") {
+          return false;
+        }
+
+        return true;
+      }
+
+      function getKeyboardHeight() {
+        if ("virtualKeyboard" in navigator && navigator.virtualKeyboard.boundingRect) {
+          const rect = navigator.virtualKeyboard.boundingRect;
+          if (rect && rect.height > 0) return rect.height;
+        }
+
+        if (window.visualViewport) {
+          const viewport = window.visualViewport;
+          return Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+        }
+
+        return 0;
+      }
+
+      function createOkButton() {
+        if (okButton) return okButton;
+
+        okButton = document.createElement("button");
+        okButton.innerText = "OK";
+        okButton.type = "button";
+        okButton.id = "unity-mobile-input-ok-button";
+
+        okButton.style.setProperty("position", "fixed", "important");
+        okButton.style.setProperty("z-index", "2147483647", "important");
+        okButton.style.setProperty("display", "none", "important");
+
+        okButton.style.setProperty("height", "42px", "important");
+        okButton.style.setProperty("width", "64px", "important");
+        okButton.style.setProperty("font-size", "14px", "important");
+        okButton.style.setProperty("font-weight", "500", "important");
+
+        okButton.style.setProperty("background", "#ffffff", "important");
+        okButton.style.setProperty("color", "#000000", "important");
+        okButton.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+        okButton.style.setProperty("border-left", "1px solid rgba(0,0,0,0.2)", "important");
+        okButton.style.setProperty("border-radius", "0 8px 8px 0", "important");
+        okButton.style.setProperty("padding", "0", "important");
+        okButton.style.setProperty("margin", "0", "important");
+        okButton.style.setProperty("box-sizing", "border-box", "important");
+
+        okButton.addEventListener("touchstart", function (e) {
+          e.preventDefault();
+        }, { passive: false });
+
+        okButton.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          if (activeUnityInput) {
+            activeUnityInput.dispatchEvent(new Event("input", { bubbles: true }));
+            activeUnityInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+            // This usually submits/closes Unity mobile input.
+            activeUnityInput.blur();
+          }
+
+          hideOkButton();
+
+          setTimeout(function () {
+            window.scrollTo(0, 0);
+          }, 50);
+        });
+
+        document.body.appendChild(okButton);
+        return okButton;
+      }
+
+      function showOkButton() {
+        const button = createOkButton();
+        button.style.setProperty("display", "block", "important");
+      }
+
+      function hideOkButton() {
+        if (okButton) {
+          okButton.style.setProperty("display", "none", "important");
+        }
+      }
+
+      function positionInputAndOkButton(input) {
+        if (!isUnityMobileInput(input)) return;
+
+        activeUnityInput = input;
+
+        const keyboardHeight = getKeyboardHeight();
+        const gap = 8;
+
+        const left = 12;
+        const right = 12;
+        const okWidth = 64;
+        const height = 42;
+        const bottom = keyboardHeight + gap;
+
+        // Input field with space for OK button
+        input.style.setProperty("position", "fixed", "important");
+        input.style.setProperty("left", left + "px", "important");
+        input.style.setProperty("right", (right + okWidth) + "px", "important");
+        input.style.setProperty("bottom", bottom + "px", "important");
+        input.style.setProperty("top", "auto", "important");
+
+        input.style.setProperty("width", "calc(100vw - " + (left + right + okWidth) + "px)", "important");
+        input.style.setProperty("height", height + "px", "important");
+        input.style.setProperty("min-height", height + "px", "important");
+
+        input.style.setProperty("z-index", "2147483646", "important");
+        input.style.setProperty("display", "block", "important");
+        input.style.setProperty("visibility", "visible", "important");
+        input.style.setProperty("opacity", "1", "important");
+
+        input.style.setProperty("font-size", "16px", "important");
+        input.style.setProperty("line-height", height + "px", "important");
+        input.style.setProperty("padding", "0 12px", "important");
+        input.style.setProperty("box-sizing", "border-box", "important");
+
+        input.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+        input.style.setProperty("border-right", "0", "important");
+        input.style.setProperty("border-radius", "8px 0 0 8px", "important");
+        input.style.setProperty("background", "#ffffff", "important");
+        input.style.setProperty("color", "#000000", "important");
+        input.style.setProperty("outline", "none", "important");
+        input.style.setProperty("transform", "none", "important");
+
+        // OK button position
+        const button = createOkButton();
+        button.style.setProperty("right", right + "px", "important");
+        button.style.setProperty("bottom", bottom + "px", "important");
+        button.style.setProperty("height", height + "px", "important");
+        button.style.setProperty("width", okWidth + "px", "important");
+
+        showOkButton();
+
+        window.scrollTo(0, 0);
+      }
+
+      function updatePosition() {
+        if (activeUnityInput && document.body.contains(activeUnityInput)) {
+          positionInputAndOkButton(activeUnityInput);
+          return;
+        }
+
+        if (isUnityMobileInput(document.activeElement)) {
+          positionInputAndOkButton(document.activeElement);
+        }
+      }
+
+      document.addEventListener("focusin", function (event) {
+        if (isUnityMobileInput(event.target)) {
+          setTimeout(function () {
+            positionInputAndOkButton(event.target);
+          }, 50);
+
+          setTimeout(function () {
+            positionInputAndOkButton(event.target);
+          }, 250);
+
+          setTimeout(function () {
+            positionInputAndOkButton(event.target);
+          }, 500);
+        }
+      }, true);
+
+      document.addEventListener("focusout", function (event) {
+        if (event.target === activeUnityInput) {
+          setTimeout(function () {
+            if (!isUnityMobileInput(document.activeElement)) {
+              activeUnityInput = null;
+              hideOkButton();
+            }
+          }, 150);
+        }
+      }, true);
+
+      window.addEventListener("resize", function () {
+        requestAnimationFrame(updatePosition);
+        setTimeout(updatePosition, 100);
+        setTimeout(updatePosition, 300);
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", updatePosition);
+        window.visualViewport.addEventListener("scroll", updatePosition);
+      }
+
+      if ("virtualKeyboard" in navigator) {
+        try {
+          navigator.virtualKeyboard.addEventListener("geometrychange", updatePosition);
+        } catch (e) { }
+      }
+
+      const observer = new MutationObserver(function () {
+        if (isUnityMobileInput(document.activeElement)) {
+          positionInputAndOkButton(document.activeElement);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    })();
+  </script>
 </body>
 
 </html>
