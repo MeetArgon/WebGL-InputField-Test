@@ -307,6 +307,172 @@
       );
     })();
   </script>
+  <script>
+    (function () {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) return;
+
+      // Chrome/Android supported. Safari may ignore it, but safe to call.
+      if ("virtualKeyboard" in navigator) {
+        try {
+          navigator.virtualKeyboard.overlaysContent = true;
+        } catch (e) { }
+      }
+
+      let activeUnityInput = null;
+
+      function getKeyboardHeight() {
+        // Best option where supported
+        if ("virtualKeyboard" in navigator && navigator.virtualKeyboard.boundingRect) {
+          const rect = navigator.virtualKeyboard.boundingRect;
+          if (rect && rect.height > 0) {
+            return rect.height;
+          }
+        }
+
+        // Fallback for most mobile browsers
+        if (window.visualViewport) {
+          const viewport = window.visualViewport;
+          const heightDiff = window.innerHeight - viewport.height - viewport.offsetTop;
+          return Math.max(0, heightDiff);
+        }
+
+        return 0;
+      }
+
+      function isUnityMobileInput(element) {
+        if (!element) return false;
+
+        const tag = element.tagName ? element.tagName.toLowerCase() : "";
+
+        if (tag !== "input" && tag !== "textarea") {
+          return false;
+        }
+
+        // Avoid affecting hidden/system inputs if any.
+        const type = (element.getAttribute("type") || "").toLowerCase();
+        if (type === "hidden" || type === "checkbox" || type === "radio" || type === "file") {
+          return false;
+        }
+
+        return true;
+      }
+
+      function forceInputAboveKeyboard(input) {
+        if (!isUnityMobileInput(input)) return;
+
+        activeUnityInput = input;
+
+        const keyboardHeight = getKeyboardHeight();
+
+        // Small gap above keyboard
+        const gap = 8;
+
+        input.style.setProperty("position", "fixed", "important");
+        input.style.setProperty("left", "12px", "important");
+        input.style.setProperty("right", "12px", "important");
+        input.style.setProperty("bottom", (keyboardHeight + gap) + "px", "important");
+        input.style.setProperty("top", "auto", "important");
+
+        input.style.setProperty("width", "calc(100vw - 24px)", "important");
+        input.style.setProperty("height", "42px", "important");
+        input.style.setProperty("min-height", "42px", "important");
+
+        input.style.setProperty("z-index", "2147483647", "important");
+        input.style.setProperty("display", "block", "important");
+        input.style.setProperty("visibility", "visible", "important");
+        input.style.setProperty("opacity", "1", "important");
+
+        input.style.setProperty("font-size", "16px", "important");
+        input.style.setProperty("line-height", "42px", "important");
+        input.style.setProperty("padding", "0 12px", "important");
+        input.style.setProperty("box-sizing", "border-box", "important");
+
+        input.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+        input.style.setProperty("border-radius", "8px", "important");
+        input.style.setProperty("background", "#ffffff", "important");
+        input.style.setProperty("color", "#000000", "important");
+        input.style.setProperty("outline", "none", "important");
+
+        input.style.setProperty("transform", "none", "important");
+
+        window.scrollTo(0, 0);
+      }
+
+      function updateActiveInputPosition() {
+        if (activeUnityInput && document.body.contains(activeUnityInput)) {
+          forceInputAboveKeyboard(activeUnityInput);
+        } else {
+          const focused = document.activeElement;
+          if (isUnityMobileInput(focused)) {
+            forceInputAboveKeyboard(focused);
+          }
+        }
+
+        window.scrollTo(0, 0);
+      }
+
+      document.addEventListener("focusin", function (event) {
+        if (isUnityMobileInput(event.target)) {
+          setTimeout(function () {
+            forceInputAboveKeyboard(event.target);
+          }, 50);
+
+          setTimeout(function () {
+            forceInputAboveKeyboard(event.target);
+          }, 250);
+
+          setTimeout(function () {
+            forceInputAboveKeyboard(event.target);
+          }, 500);
+        }
+      }, true);
+
+      document.addEventListener("focusout", function (event) {
+        if (event.target === activeUnityInput) {
+          activeUnityInput = null;
+        }
+      }, true);
+
+      window.addEventListener("resize", function () {
+        requestAnimationFrame(updateActiveInputPosition);
+        setTimeout(updateActiveInputPosition, 100);
+        setTimeout(updateActiveInputPosition, 300);
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", updateActiveInputPosition);
+        window.visualViewport.addEventListener("scroll", updateActiveInputPosition);
+      }
+
+      if ("virtualKeyboard" in navigator) {
+        try {
+          navigator.virtualKeyboard.addEventListener("geometrychange", updateActiveInputPosition);
+        } catch (e) { }
+      }
+
+      // Unity may create the input dynamically after TMP_InputField focus.
+      const observer = new MutationObserver(function () {
+        const focused = document.activeElement;
+
+        if (isUnityMobileInput(focused)) {
+          forceInputAboveKeyboard(focused);
+        }
+
+        const inputs = document.querySelectorAll("input, textarea");
+        inputs.forEach(function (input) {
+          input.addEventListener("focus", function () {
+            forceInputAboveKeyboard(input);
+          }, true);
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    })();
+  </script>
 </body>
 
 </html>
