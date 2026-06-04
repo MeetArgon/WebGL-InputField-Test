@@ -2,13 +2,30 @@
 <html lang="en-us">
 
 <head>
+  <!--<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" /> -->
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <!-- ANDROID KEYBOARD FIX -->
+  <!-- <meta name="viewport" content="width=device-width,
+               height=device-height,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no,
+               shrink-to-fit=yes,
+               viewport-fit=cover,
+               interactive-widget=overlays-content"> -->
+
   <title>Unity Web Player | WebGL InputField Test</title>
+
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
   <link rel="manifest" href="manifest.webmanifest">
 
+
+  <!-- ANDROID KEYBOARD FIX -->
   <style>
     html,
     body {
@@ -46,23 +63,60 @@
       font-size: 16px !important;
     }
   </style>
+
 </head>
 
 <body>
+
   <div id="unity-container">
-    <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+
+    <canvas id="unity-canvas" width=960 height=600 tabindex="-1">
+    </canvas>
+
     <div id="unity-loading-bar">
       <div id="unity-logo"></div>
+
       <div id="unity-progress-bar-empty">
         <div id="unity-progress-bar-full"></div>
       </div>
     </div>
-    <div id="unity-warning"> </div>
+
+    <div id="unity-warning"></div>
+
+
   </div>
+
   <script>
+
+    // =====================================================
+    // ANDROID VIEWPORT FIX
+    // =====================================================
+
+    // function lockViewport() {
+    //   document.documentElement.style.height = window.innerHeight + "px";
+    //   document.body.style.height = window.innerHeight + "px";
+    // }
+
+    // window.addEventListener("resize", lockViewport);
+    // window.addEventListener("orientationchange", lockViewport);
+
+    // if (window.visualViewport) {
+    //   window.visualViewport.addEventListener("resize", lockViewport);
+    // }
+
+    // lockViewport();
+
+    // =====================================================
+
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("ServiceWorker.js");
+        navigator.serviceWorker.register(
+          'ServiceWorker.js?v=0.1'
+        ).then((registration) => {
+          if (registration.waiting) {
+            registration.waiting.postMessage('skipWaiting');
+          }
+        });
       }
     });
 
@@ -72,56 +126,67 @@
     var progressBarFull = document.querySelector("#unity-progress-bar-full");
     var warningBanner = document.querySelector("#unity-warning");
 
-    // Shows a temporary message banner/ribbon for a few seconds, or
-    // a permanent error message on top of the canvas if type=='error'.
-    // If type=='warning', a yellow highlight color is used.
-    // Modify or remove this function to customize the visually presented
-    // way that non-critical warnings and error messages are presented to the
-    // user.
+    // Shows a temporary message banner/ribbon for a few seconds,
+    // or a permanent error message on top of the canvas if type=='error'.
+
     function unityShowBanner(msg, type) {
       function updateBannerVisibility() {
-        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        warningBanner.style.display =
+          warningBanner.children.length ? 'block' : 'none';
       }
+
       var div = document.createElement('div');
       div.innerHTML = msg;
+
       warningBanner.appendChild(div);
-      if (type == 'error') div.style = 'background: red; padding: 10px;';
+
+      if (type == 'error') {
+        div.style = 'background: red; padding: 10px;';
+      }
       else {
-        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+        if (type == 'warning') {
+          div.style = 'background: yellow; padding: 10px;';
+        }
+
         setTimeout(function () {
           warningBanner.removeChild(div);
           updateBannerVisibility();
         }, 5000);
       }
+
       updateBannerVisibility();
     }
 
+    const BUILD_VERSION = "0.1";
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/a01a93fd5ee6bb37c3e12dd443bc418f.loader.js";
-    var config = {
+    var loaderUrl =
+      buildUrl + "/c5d8ce08bf7608ef30b6f422ddc37119.loader.js?v=" + BUILD_VERSION;
+
+    var config =
+    {
       arguments: [],
-      dataUrl: buildUrl + "/ac9c256bb348912a9342f2d3d2ce5a7f.data.unityweb",
-      frameworkUrl: buildUrl + "/2823fc0e8b0d9609df1d05e11ed7aeb7.framework.js.unityweb",
-      codeUrl: buildUrl + "/a4610751194c36a56176b694066a49c3.wasm.unityweb",
-      streamingAssetsUrl: "StreamingAssets",
+
+      dataUrl:
+        buildUrl + "/85cd9a587e653d9ac30065f17feb1f60.data.unityweb?v=" + BUILD_VERSION,
+
+      frameworkUrl:
+        buildUrl + "/958547863e15fd6dfedea2ac7349c048.framework.js.unityweb?v=" + BUILD_VERSION,
+
+
+		codeUrl:
+        buildUrl + "/ddd1bd15183f91045eaf4d7e38b3ba84.wasm.unityweb?v=" + BUILD_VERSION,
+
+
+		  streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "WebGL InputField Test",
       productVersion: "0.1",
       showBanner: unityShowBanner,
-      // errorHandler: function(err, url, line) {
-      //    alert("error " + err + " occurred at line " + line);
-      //    // Return 'true' if you handled this error and don't want Unity
-      //    // to process it further, 'false' otherwise.
-      //    return true;
-      // },
     };
 
-    // By default Unity keeps WebGL canvas render target size matched with
-    // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-    // Set this to false if you want to decouple this synchronization from
-    // happening inside the engine, and you would instead like to size up
-    // the canvas DOM size and WebGL render target sizes yourself.
     // config.matchWebGLToCanvasSize = false;
+
+
 
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Mobile device style: fill the whole browser client area with the game canvas:
@@ -164,17 +229,31 @@
     loadingBar.style.display = "block";
 
     var script = document.createElement("script");
+
     script.src = loaderUrl;
+
     script.onload = () => {
-      createUnityInstance(canvas, config, (progress) => {
-        progressBarFull.style.width = 100 * progress + "%";
-      }).then((unityInstance) => {
-        loadingBar.style.display = "none";
-      }).catch((message) => {
-        alert(message);
-      });
+      createUnityInstance(
+        canvas,
+        config,
+        (progress) => {
+          progressBarFull.style.width =
+            100 * progress + "%";
+        })
+
+        .then((unityInstance) => {
+          loadingBar.style.display = "none";
+
+
+        })
+
+        .catch((message) => {
+          alert(message);
+        });
     };
+
     document.body.appendChild(script);
+
   </script>
   <script>
     (function () {
