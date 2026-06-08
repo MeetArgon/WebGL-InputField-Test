@@ -2,21 +2,8 @@
 <html lang="en-us">
 
 <head>
-  <!--<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" /> -->
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
-  <!-- ANDROID KEYBOARD FIX -->
-  <!-- <meta name="viewport" content="width=device-width,
-               height=device-height,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no,
-               shrink-to-fit=yes,
-               viewport-fit=cover,
-               interactive-widget=overlays-content"> -->
 
   <title>Unity Web Player | WebGL InputField Test</title>
 
@@ -25,7 +12,6 @@
   <link rel="manifest" href="manifest.webmanifest">
 
 
-  <!-- ANDROID KEYBOARD FIX -->
   <style>
     html,
     body {
@@ -87,31 +73,10 @@
   </div>
 
   <script>
-
-    // =====================================================
-    // ANDROID VIEWPORT FIX
-    // =====================================================
-
-    // function lockViewport() {
-    //   document.documentElement.style.height = window.innerHeight + "px";
-    //   document.body.style.height = window.innerHeight + "px";
-    // }
-
-    // window.addEventListener("resize", lockViewport);
-    // window.addEventListener("orientationchange", lockViewport);
-
-    // if (window.visualViewport) {
-    //   window.visualViewport.addEventListener("resize", lockViewport);
-    // }
-
-    // lockViewport();
-
-    // =====================================================
-
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register(
-          'ServiceWorker.js?v=0.2'
+          'ServiceWorker.js?v=0.3'
         ).then((registration) => {
           if (registration.waiting) {
             registration.waiting.postMessage('skipWaiting');
@@ -157,7 +122,7 @@
       updateBannerVisibility();
     }
 
-    const BUILD_VERSION = "0.2";
+    const BUILD_VERSION = "0.3";
     var buildUrl = "Build";
     var loaderUrl =
       buildUrl + "/51a0d2b50aaf2f15ea9f9c05d16fe815.loader.js?v=" + BUILD_VERSION;
@@ -167,7 +132,7 @@
       arguments: [],
 
       dataUrl:
-        buildUrl + "/373eb054ea669e844c8ed95c3066d368.data.unityweb?v=" + BUILD_VERSION,
+        buildUrl + "/f563795f725c5775843da3328663caea.data.unityweb?v=" + BUILD_VERSION,
 
       frameworkUrl:
         buildUrl + "/958547863e15fd6dfedea2ac7349c048.framework.js.unityweb?v=" + BUILD_VERSION,
@@ -180,7 +145,7 @@
 		  streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "WebGL InputField Test",
-      productVersion: "0.2",
+      productVersion: "0.3",
       showBanner: unityShowBanner,
     };
 
@@ -399,6 +364,9 @@
 
       let activeInput = null;
       let activeOkButton = null;
+      const INPUT_BORDER_COLOR = "#39A3D0";
+      const INPUT_BORDER_WIDTH = "2px";
+      const INPUT_BORDER_STYLE = INPUT_BORDER_WIDTH + " solid " + INPUT_BORDER_COLOR;
 
       function isTextInput(el) {
         if (!el) return false;
@@ -567,15 +535,16 @@
 
           activeOkButton.style.setProperty("background", "#ffffff", "important");
           activeOkButton.style.setProperty("color", "#000000", "important");
-          activeOkButton.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+          activeOkButton.style.setProperty("border", INPUT_BORDER_STYLE, "important");
+          activeOkButton.style.setProperty("border-left", "1px solid " + INPUT_BORDER_COLOR, "important");
           activeOkButton.style.setProperty("border-radius", "0 8px 8px 0", "important");
           activeOkButton.style.setProperty("transform", "none", "important");
 
-          input.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+          input.style.setProperty("border", INPUT_BORDER_STYLE, "important");
           input.style.setProperty("border-right", "0", "important");
           input.style.setProperty("border-radius", "8px 0 0 8px", "important");
         } else {
-          input.style.setProperty("border", "1px solid rgba(0,0,0,0.25)", "important");
+          input.style.setProperty("border", INPUT_BORDER_STYLE, "important");
           input.style.setProperty("border-radius", "8px", "important");
         }
 
