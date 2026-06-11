@@ -76,7 +76,7 @@
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register(
-          'ServiceWorker.js?v=0.4'
+          'ServiceWorker.js?v=0.5'
         ).then((registration) => {
           if (registration.waiting) {
             registration.waiting.postMessage('skipWaiting');
@@ -122,30 +122,30 @@
       updateBannerVisibility();
     }
 
-    const BUILD_VERSION = "0.4";
+    const BUILD_VERSION = "0.5";
     var buildUrl = "Build";
     var loaderUrl =
-      buildUrl + "/320d5d4be3ac3b48994371d11fb9069c.loader.js?v=" + BUILD_VERSION;
+      buildUrl + "/01f8ed6ed72f22b25c1489b5fc49f7bc.loader.js?v=" + BUILD_VERSION;
 
     var config =
     {
       arguments: [],
 
       dataUrl:
-        buildUrl + "/31ee92f1588eaa31345ed1d3107b76e1.data.unityweb?v=" + BUILD_VERSION,
+        buildUrl + "/2f92912c37e7ec82b187dd68111938fb.data.unityweb?v=" + BUILD_VERSION,
 
       frameworkUrl:
         buildUrl + "/958547863e15fd6dfedea2ac7349c048.framework.js.unityweb?v=" + BUILD_VERSION,
 
 
 		codeUrl:
-        buildUrl + "/5acb6ca199a42710eef80deee48b17ab.wasm.unityweb?v=" + BUILD_VERSION,
+        buildUrl + "/92462f36b9fe8a4d75715f55be8945b0.wasm.unityweb?v=" + BUILD_VERSION,
 
 
 		  streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "WebGL InputField Test",
-      productVersion: "0.4",
+      productVersion: "0.5",
       showBanner: unityShowBanner,
     };
 
